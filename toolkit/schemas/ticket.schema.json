@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Security Ticket",
+  "description": "Standardized vulnerability ticket for engineering handoff",
+  "type": "object",
+  "required": ["id", "title", "severity", "component", "description", "acceptance_criteria"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^SEC-\\d{4}-\\d{3}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 200
+    },
+    "type": {
+      "type": "string",
+      "enum": ["vulnerability", "misconfiguration", "secret", "dependency", "policy_violation"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "info"]
+    },
+    "cvss_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 10.0
+    },
+    "cvss_vector": {
+      "type": "string"
+    },
+    "cwe": {
+      "type": "string",
+      "pattern": "^CWE-\\d+$"
+    },
+    "component": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 30
+    },
+    "reproduction_steps": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "code": {"type": "string"},
+        "payload": {"type": "string"},
+        "impact": {"type": "string"}
+      }
+    },
+    "fix_suggestion": {
+      "type": "object",
+      "properties": {
+        "approach": {"type": "string"},
+        "code_example": {"type": "string"},
+        "references": {
+          "type": "array",
+          "items": {"type": "string", "format": "uri"}
+        }
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "assignee": {"type": "string"},
+    "sla_hours": {"type": "integer"},
+    "status": {
+      "type": "string",
+      "enum": ["backlog", "todo", "in_progress", "in_review", "done", "wont_fix"]
+    }
+  }
+}

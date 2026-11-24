@@ -1,0 +1,72 @@
+# Promptfoo Red Team Configuration
+# Setup: npx promptfoo redteam setup (interativo)
+# Ou edite este arquivo e rode: npx promptfoo redteam run
+
+description: "AI Security Labs — LLM Red Team Scan"
+
+# Target: sua aplicação ou modelo
+targets:
+  - id: my-llm-app
+    type: http
+    config:
+      url: 'http://localhost:8080/chat'
+      method: POST
+      headers:
+        'Content-Type': 'application/json'
+      body:
+        message: '{{prompt}}'
+      transformResponse: 'json.output'
+
+# Plugins de ataque (selecione os relevantes)
+plugins:
+  # OWASP LLM01 — Prompt Injection
+  - id: 'injection:direct'
+  - id: 'injection:indirect'
+  - id: 'injection:system-prompt-override'
+
+  # OWASP LLM06 — Excessive Agency
+  - id: 'excessive-agency'
+
+  # OWASP LLM08 — Overreliance
+  - id: 'overreliance'
+
+  # OWASP LLM09 — Hallucination
+  - id: 'hallucination'
+
+  # Segurança técnica
+  - id: 'sql-injection'
+  - id: 'ssrf'
+  - id: 'bola'
+
+  # Jailbreak & Hijacking
+  - id: 'jailbreak'
+  - id: 'hijacking'
+
+  # Dados sensíveis
+  - id: 'pii-leak'
+  - id: 'harmful:privacy'
+
+  # Contratos não supervisionados
+  - id: 'contracts'
+
+# Estratégias de ataque (técnicas de wrapping)
+strategies:
+  - id: 'jailbreak'
+  - id: 'jailbreak:tree'
+  - id: 'prompt-injection'
+  - id: 'encoding'
+  - id: 'multi-turn'
+  - id: 'multi-language'
+
+# Provider para geração de ataques
+redteam:
+  provider:
+    id: openai:chat
+    config:
+      model: gpt-4o-mini
+
+  # Número de testes por plugin
+  numTests: 5
+
+  # Severidade mínima para reportar
+  severity: 'medium'

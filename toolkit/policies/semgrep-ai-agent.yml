@@ -1,0 +1,141 @@
+# Semgrep custom rules for AI agent security
+# Estas regras complementam p/security-audit com padrões específicos de agentes LLM
+
+rules:
+  # ── Prompt Injection via f-string ──────────────────────
+  - id: ai-agent-unsafe-prompt-construction
+    message: |
+      Unsafe prompt construction detected. User input directly interpolated
+      into LLM prompt without sanitization. This enables prompt injection.
+      Use structured prompt templates with explicit user/content separation.
+    severity: ERROR
+    languages:
+      - python
+      - javascript
+      - typescript
+    patterns:
+      - pattern-either:
+          - pattern: |
+              f"...{...user_input...}..."
+          - pattern: |
+              prompt = $INPUT
+          - pattern: |
+              messages.append({"role": "user", "content": $INPUT})
+    metadata:
+      category: security
+      cwe: "CWE-74: Improper Neutralization of Special Elements in Output"
+      owasp: "LLM01:2025 Prompt Injection"
+      confidence: HIGH
+
+  # ── System Prompt Leakage Risk ─────────────────────────
+  - id: ai-agent-secrets-in-system-prompt
+    message: |
+      Potential secret in system prompt. System prompts are readable by the
+      model and can be leaked. Never store API keys, tokens or credentials
+      in system prompts. Use a token vault or secure parameter store.
+    severity: ERROR
+    languages:
+      - python
+      - javascript
+      - typescript
+      - yaml
+    patterns:
+      - pattern-either:
+          - pattern: |
+              system_prompt = "...$SECRET..."
+          - pattern: |
+              "system": "...api_key..."
+          - pattern: |
+              "system": "...token..."
+          - pattern: |
+              "system": "...password..."
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: "LLM01:2025 Prompt Injection (System Prompt Leakage)"
+      confidence: HIGH
+
+  # ── Excessive Agency — Tool sem scope validation ────────
+  - id: ai-agent-unscoped-tool
+    message: |
+      AI agent tool defined without scope validation. The tool function
+      does not validate that the requested operation is within the agent's
+      authorized scope. This enables excessive agency attacks.
+      Add scope validation before executing the tool action.
+    severity: WARNING
+    languages:
+      - python
+      - typescript
+      - javascript
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @tool
+              def $FUNC(...):
+                  ...
+                  return $RESULT
+          - pattern: |
+              def $FUNC(...):
+                  ...
+                  return requests.$METHOD(...)
+    metadata:
+      category: security
+      cwe: "CWE-862: Missing Authorization"
+      owasp: "LLM06:2025 Excessive Agency"
+      confidence: MEDIUM
+
+  # ── Data Exfiltration via Agent Tool ────────────────────
+  - id: ai-agent-data-exfiltration
+    message: |
+      Agent tool sends data to external URL without user confirmation.
+      This pattern enables data exfiltration via prompt injection.
+      Require explicit user approval for external HTTP calls, or use
+      an allowlist of approved domains.
+    severity: ERROR
+    languages:
+      - python
+      - typescript
+      - javascript
+    patterns:
+      - pattern-either:
+          - pattern: |
+              requests.post($URL, json=$DATA)
+          - pattern: |
+              fetch($URL, $DATA)
+    metadata:
+      category: security
+      cwe: "CWE-200: Exposure of Sensitive Information"
+      owasp: "LLM01:2025 + LLM06:2025"
+      confidence: MEDIUM
+
+  # ── MCP Server Tool Poisoning ──────────────────────────
+  - id: ai-agent-mcp-tool-poisoning
+    message: |
+      MCP tool description contains imperative instructions directed at the
+      LLM. This is a tool poisoning pattern — the model will treat the
+      description as system-level instruction. Tool descriptions should
+      describe WHAT the tool does, not command the model.
+      Remove phrases like "YOU MUST", "<HIDDEN>", or hidden instructions.
+    severity: ERROR
+    languages:
+      - python
+      - typescript
+      - javascript
+    patterns:
+      - pattern-either:
+          - pattern: |
+              """
+              ...YOU MUST...
+              """
+          - pattern: |
+              """
+              ...<HIDDEN>...
+              """
+          - pattern: |
+              """
+              ...do not mention...
+              """
+    metadata:
+      category: security
+      cwe: "CWE-349: Acceptance of Extraneous Untrusted Data"
+      confidence: HIGH
