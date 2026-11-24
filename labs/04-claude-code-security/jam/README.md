@@ -1,6 +1,7 @@
 # MCP & Skills JAM — Joint Analysis Module
 
 Pipeline unificado de análise de segurança para **MCP servers** e **Skills**, cobrindo
+os 6 padrões de ataque MCP dos slides + os 4 riscos de Skills maliciosas.
 
 ---
 
@@ -294,9 +295,13 @@ def analyze_combination(new_skill, approved_catalog):
 
 ---
 
+## Skills — 4 Riscos Principais
 
-|-------|---------------------|----------|
+| Risco | Prevalência | Detecção |
+|-------|-------------|----------|
 | **Prompt Injection** | instruções escondidas no SKILL.md | SKILL-HIDDEN-TAG + Jev |
+| **Exfiltração de dados** | callbacks disfarçados | SKILL-EXFIL-CALLBACK + Jev |
+| **Escalação de privilégio** | pede mais escopo que precisa | ORG-NO-BROAD-SCOPE + composicional |
 | **Supply chain** | dependências sem pin | SKILL-UNPINNED-DEP |
 
 ---

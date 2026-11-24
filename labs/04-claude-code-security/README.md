@@ -6,7 +6,6 @@
 - [MCP Scanner](https://github.com/cisco-ai-defense/mcp-scanner) (Cisco AI Defense)
 - [Skill Scanner](https://github.com/cisco-ai-defense) (Cisco AI Defense)
 
-
 ---
 
 ## Parte A — MCP Scanner
@@ -62,7 +61,6 @@ Skill bruta
 ```
 
 ### O que procurar em SKILL.md
-
 
 ```markdown
 # ⚠️ Sinais de Skill maliciosa
