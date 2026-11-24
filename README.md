@@ -14,8 +14,9 @@ ai-security-labs/
 │   ├── 01-prompt-injection/        # Promptfoo: red team contra LLMs
 │   ├── 02-agent-red-teaming/       # ARTEX + PentAGI: pentest autônomo
 │   ├── 03-jev-appsec/              # Jev (TypeSafe): triagem e scanner de vulns
-│   ├── 04-claude-code-security/    # Skills scanner + MCP scanner
-│   ├── 05-sast-ai-triage/          # Pipeline SAST/DAST/SCA + triagem com IA
+│   ├── 04-claude-code-security/    # Skills scanner + MCP scanner + JAM (rules)
+│   │   └── jam/                    # Joint Analysis Module: pipeline 4 estágios
+│   ├── 05-sast-ai-triage/          # Pipeline SAST/DAST/SCA + triagem com IA/Jev
 │   ├── 06-code-review-ia/          # Revisão de PR/diff com schema + 3 níveis de comunicação
 │   ├── 07-criacao-tickets/         # Findings → tickets com schema, checklist e Jira
 │   ├── 08-reteste-com-ia/          # Reteste automatizado: plano, bypass, validação
@@ -37,8 +38,8 @@ ai-security-labs/
 | 01 — Prompt Injection | Mód. 2 (Vulnerabilidades) | Red team contra LLM com promptfoo |
 | 02 — Agent Red Teaming | Mód. 2 (Vulnerabilidades) | ARTEX + PentAGI — ataque e detecção blue team |
 | 03 — Jev AppSec | Extra | Modelo de decisão para triagem — não está nos slides |
-| 04 — Claude Code Security | Mód. 4 (Skills & MCP) | Scan de Skills + MCP servers — 6 padrões de ataque |
-| 05 — SAST + AI Triage | **Mód. 3 — Mão na Massa** | Pipeline com Semgrep+Trivy, score 3 eixos, amostra de 30, decisão documentada |
+| 04 — Claude Code Security | Mód. 4 (Skills & MCP) | Scan de Skills + MCP servers — 6 padrões de ataque + **JAM (4 estágios)** |
+| 05 — SAST + AI Triage | **Mód. 3 — Mão na Massa** | Pipeline com Semgrep+Trivy, score 3 eixos, amostra de 30, decisão documentada + **triagem com Jev** |
 | 06 — Code Review com IA | **Mód. 4 — Mão na Massa** | Revisão de PR com schema, Semgrep cross-validation, comunicação 3 níveis |
 | 07 — Criação de Tickets | **Mód. 5 — Mão na Massa** | Normalizar, enriquecer, gerar ticket, checklist qualidade, Jira |
 | 08 — Reteste com IA | **Mód. 6 — Mão na Massa** | Plano de reteste, payloads bypass, análise de diff, relatório |

@@ -151,6 +151,29 @@ Injected Page → Browser MCP → Agent → GitHub MCP / Slack MCP / AWS MCP
 
 ---
 
+## Parte E — MCP & Skills JAM (Joint Analysis Module)
+
+O pipeline completo de análise unificada está em [`jam/README.md`](jam/README.md):
+
+```
+SKILL.md / mcp_server.py → [1] Estática → [2] Semântica (Jev) → [3] Custom Rules → [4] Composicional → VEREDITO
+```
+
+Regras determinísticas do estágio 1 em [`jam/rules/static-rules.yaml`](jam/rules/static-rules.yaml):
+
+- **Skills** (6 regras): callback externo, instrução de sigilo, execução ofuscada, dep sem pin, tag oculta, hook com comando
+- **MCP** (7 regras): CORS wildcard, DNS rebinding off, docstring imperativa, resource secreto, escopo amplo, credential logging
+
+Rode o JAM:
+
+```bash
+python jam/run_jam.py skill path/to/SKILL.md
+python jam/run_jam.py mcp path/to/mcp_server.py
+python jam/run_jam.py mcp remote http://localhost:8001/sse
+```
+
+---
+
 ## Referências
 
 - [MCP Scanner GitHub](https://github.com/cisco-ai-defense/mcp-scanner)

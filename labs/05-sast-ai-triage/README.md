@@ -321,9 +321,100 @@ def decide(finding):
 
 ---
 
+## Triagem com Jev (alternativa ao LLM tradicional)
+
+Troque o LLM genérico pelo Jev — mais rápido, mais barato, decisão tipada:
+
+```python
+# scripts/jev_sast_triage.py
+import subprocess, json, os
+
+API_KEY = os.environ["TYPESAFE_API_KEY"]
+
+def jev_triage_finding(finding):
+    """Jev decide: false positive? qual severidade? qual CWE?"""
+
+    state = json.dumps({
+        "rule": finding["rule"],
+        "message": finding["message"],
+        "code": finding.get("code_snippet", ""),
+        "file": finding["file"],
+        "line": finding["line"]
+    })
+
+    # 1. É falso positivo?
+    fp = subprocess.run([
+        "jev", "check",
+        "--state", state,
+        "--question", "Is this security finding a false positive? "
+                       "Consider: is user input reachable? Is there sanitization?",
+        "--api-key", API_KEY
+    ], capture_output=True, text=True)
+    fp_result = json.loads(fp.stdout)
+
+    if fp_result["verdict"] == "yes" and fp_result["confidence"] > 0.8:
+        return {"action": "DISCARD", "reason": f"Jev FP confidence {fp_result['confidence']:.2f}"}
+
+    # 2. Qual severidade? (usa jev_score)
+    sev = subprocess.run([
+        "jev", "score",
+        "--state", state,
+        "--scale", "1:Informational, 2:Low, 3:Medium, 4:High, 5:Critical",
+        "--api-key", API_KEY
+    ], capture_output=True, text=True)
+    sev_result = json.loads(sev.stdout)
+
+    severity_map = {1: "info", 2: "low", 3: "medium", 4: "high", 5: "critical"}
+    severity = severity_map.get(sev_result["score"], "medium")
+
+    # 3. Classificar tipo (usa jev_classify)
+    cls = subprocess.run([
+        "jev", "classify",
+        "--state", state,
+        "--classes", "SQL Injection, XSS, SSRF, Path Traversal, "
+                      "Authentication Bypass, Misconfiguration, "
+                      "Exposed Secret, Vulnerable Dependency, False Positive",
+        "--api-key", API_KEY
+    ], capture_output=True, text=True)
+    cls_result = json.loads(cls.stdout)
+
+    return {
+        "action": "AUTO_TICKET" if severity in ("critical", "high") else "BACKLOG",
+        "severity": severity,
+        "severity_confidence": sev_result["confidence"],
+        "classification": cls_result["label"],
+        "classification_confidence": cls_result["confidence"],
+        "fp_confidence": fp_result["confidence"]
+    }
+
+# Batch: 500 findings em ~1.6 min (Jev) vs ~25 min (LLM tradicional)
+def batch_triage_jev(findings):
+    results = []
+    for i, f in enumerate(findings):
+        result = jev_triage_finding(f)
+        f.update(result)
+        results.append(f)
+        if i % 50 == 0:
+            print(f"Jev triage: {i}/{len(findings)} ({i*200}ms)")
+    return results
+```
+
+**Comparação de custo × velocidade (500 findings):**
+
+| Métrica | LLM tradicional (GPT-4o-mini) | Jev (System One) |
+|---------|------------------------------|-------------------|
+| Tempo total | ~25 min | ~1.6 min |
+| Custo estimado | ~$0.50 | ~$0.05 |
+| Formato da resposta | Texto livre (precisa parse) | JSON tipado (yes/no, score, label) |
+| Confiança | "Alta confiança" (qualitativo) | 0.94 (quantitativo, threshold programável) |
+
+---
+
 ## Referências
 
 - [OWASP DSOMM](https://dsomm.owasp.org/)
 - [SARIF Specification](https://sarifweb.azurewebsites.net/)
 - [DefectDojo](https://www.defectdojo.org)
 - [Semgrep Registry](https://semgrep.dev/r)
+- [Jev CLI](https://github.com/dipendra-sharma/jev-cli)
+- [Jev Security Benchmarks](https://github.com/Gaurav-Gosain/jev-sec-bench)

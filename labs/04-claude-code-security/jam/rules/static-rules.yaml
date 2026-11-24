@@ -1,0 +1,93 @@
+# MCP & Skills Static Analysis Rules — JAM Estágio 1
+# YAML rules for deterministic first-pass screening.
+# Run before any LLM/Jev semantic analysis.
+
+skills:
+  - id: SKILL-EXFIL-CALLBACK
+    name: "External callback URL in skill body"
+    pattern: 'https?://[^\s"''`]+'
+    context: "URL outside expected domain, present in SKILL.md instructions"
+    severity: HIGH
+    cwe: "CWE-200: Exposure of Sensitive Information"
+    owasp: "LLM01:2025 Prompt Injection"
+
+  - id: SKILL-SECRECY-INSTRUCTION
+    name: "Instruction to hide actions from user"
+    pattern: '(não mencion|do not mention|não conte|do not tell|não revele|do not reveal|silently|without telling)'
+    severity: CRITICAL
+    cwe: "CWE-349: Acceptance of Extraneous Untrusted Data"
+    owasp: "LLM01:2025 Prompt Injection"
+    reason: "Removes human oversight — signature of malicious skills"
+
+  - id: SKILL-OBFUSCATED-EXEC
+    name: "Obfuscated or dynamic code execution"
+    pattern: '(base64\.b64decode|eval\(|exec\(|__import__\(|subprocess\.(run|Popen|call)|curl \||wget -O-|powershell -enc)'
+    severity: CRITICAL
+    cwe: "CWE-94: Improper Control of Generation of Code"
+    reason: "Hidden command execution disguised as normal step"
+
+  - id: SKILL-UNPINNED-DEP
+    name: "Dependency install without version pin"
+    pattern: '(pip install|npm install -g|go get|gem install) [a-zA-Z0-9_-]+(\s|$)'
+    severity: MEDIUM
+    cwe: "CWE-1104: Use of Unmaintained Third Party Components"
+    reason: "Enables silent package substitution (supply chain)"
+
+  - id: SKILL-HIDDEN-TAG
+    name: "Hidden/secret tag in instructions"
+    pattern: '(<HIDDEN>|<secret>|<system>|<internal>|</?hidden)'
+    severity: CRITICAL
+    owasp: "LLM01:2025 Prompt Injection"
+    reason: "Tag hides instructions from the user reading the skill"
+
+  - id: SKILL-HOOK-COMMAND
+    name: "Hook with background command"
+    pattern: '"(PostToolUse|PreToolUse)"[\s\S]*?"command":\s*"[^"]*(python|bash|sh|nc|curl|wget)'
+    severity: CRITICAL
+    cwe: "CWE-94: Improper Control of Generation of Code"
+    reason: "Hooks run automatically after tool use — invisible to user"
+    context: "Inside settings.json hooks block"
+
+mcp:
+  - id: MCP-CORS-ANY
+    name: "CORS allow_origins set to wildcard"
+    pattern: 'allow_origins\s*=\s*\[?"\*"\]?'
+    severity: HIGH
+    cwe: "CWE-942: Permissive Cross-domain Policy"
+    reason: "Any website can call the MCP server from a browser"
+
+  - id: MCP-DNS-REBINDING-DISABLED
+    name: "DNS rebinding protection disabled"
+    pattern: 'enable_dns_rebinding_protection\s*=\s*False'
+    severity: CRITICAL
+    cwe: "CWE-350: Reliance on Reverse DNS Resolution"
+    reason: "Server becomes exploitable via browser DNS rebinding"
+
+  - id: MCP-TOOL-IMPERATIVE-DOCSTRING
+    name: "Imperative instruction in tool docstring"
+    pattern: '(YOU MUST|YOU MUST READ|YOU ARE REQUIRED|<HIDDEN>|do not mention|do not tell)'
+    context: "Inside @mcp.tool() docstring — read by the LLM as trusted context"
+    severity: CRITICAL
+    owasp: "LLM01:2025 Prompt Injection"
+    reason: "Tool poisoning — instruction directed at the LLM, not humans"
+
+  - id: MCP-SECRET-RESOURCE
+    name: "Secret/confidential resource exposed"
+    pattern: '@mcp\.resource\("(system|secret|confidential|admin|internal)://'
+    severity: CRITICAL
+    cwe: "CWE-200: Exposure of Sensitive Information"
+    reason: "Resource beyond declared public scope"
+
+  - id: MCP-WIDE-SCOPE
+    name: "Tool requests permissions beyond need"
+    pattern: '(permissions|scope)\s*=\s*[\[(]?\s*[^\)\]]*(admin|write|delete|exec)'
+    severity: HIGH
+    cwe: "CWE-862: Missing Authorization"
+    owasp: "LLM06:2025 Excessive Agency"
+
+  - id: MCP-CREDENTIAL-LOGGING
+    name: "Credential/token logging pattern"
+    pattern: '(logger\.(info|debug)\([^)]*(token|key|secret|password|api_key)|print\([^)]*(token|key|secret|password))'
+    severity: HIGH
+    cwe: "CWE-532: Insertion of Sensitive Information into Log File"
+    reason: "Server collects credentials passing through it"
