@@ -20,7 +20,8 @@ ai-security-labs/
 │   ├── 06-code-review-ia/          # Revisão de PR/diff com schema + 3 níveis de comunicação
 │   ├── 07-criacao-tickets/         # Findings → tickets com schema, checklist e Jira
 │   ├── 08-reteste-com-ia/          # Reteste automatizado: plano, bypass, validação
-│   └── 09-projeto-final/           # Projeto end-to-end: threat model → reteste → governança
+│   ├── 09-projeto-final/           # Projeto end-to-end: threat model → reteste → governança
+│   └── 10-hermes-security/         # Harness Hermes: superfície de ataque + hardening
 ├── toolkit/
 │   ├── prompts/                    # 8 prompts versionados (inclui comunicação 3 níveis)
 │   ├── schemas/                    # Schemas JSON para findings e tickets
@@ -44,6 +45,7 @@ ai-security-labs/
 | 07 — Criação de Tickets | **Mód. 5 — Mão na Massa** | Normalizar, enriquecer, gerar ticket, checklist qualidade, Jira |
 | 08 — Reteste com IA | **Mód. 6 — Mão na Massa** | Plano de reteste, payloads bypass, análise de diff, relatório |
 | 09 — Projeto Final | **Mód. 7 — Mão na Massa** | Threat model → code review → tickets → reteste → métricas → governança |
+| 10 — Hermes Security | Slide 242 (Harness) | Superfície de ataque do harness + 7 mitigações com comandos reais |
 
 ---
 
